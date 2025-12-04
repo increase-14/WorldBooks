@@ -1,0 +1,17 @@
+{
+    "nav": {
+      "home": "Home",
+      "books": "Books",
+      "libraries": "Libraries"
+    },
+    "footer": {
+      "copyright": "© 2025 Books Catalog",
+      "madeFor": "Made for book lovers"
+    },
+    "notFound": {
+      "title": "Oops! Page not found",
+      "description": "The page you are looking for does not exist or has been deleted.",
+      "homeButton": "Go to homepage",
+      "booksButton": "Go to books catalog"
+    }
+  }

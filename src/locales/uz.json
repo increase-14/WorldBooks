@@ -1,0 +1,17 @@
+{
+    "nav": {
+      "home": "Bosh sahifa",
+      "books": "Kitoblar",
+      "libraries": "Kutubxonalar"
+    },
+    "footer": {
+      "copyright": "© 2025 Kitoblar Katalogi",
+      "madeFor": "Kitobsevarlar uchun yaratilgan"
+    },
+    "notFound": {
+      "title": "Oops! Sahifa topilmadi",
+      "description": "Siz izlayotgan sahifa mavjud emas yoki o'chirilgan bo'lishi mumkin.",
+      "homeButton": "Bosh sahifaga qaytish",
+      "booksButton": "Kitoblar katalogiga o'tish"
+    }
+  }
