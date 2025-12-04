@@ -19,7 +19,7 @@ import {
 import { IconArrowLeft, IconBook2 } from "@tabler/icons-react";
 
 const KitoblarDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams(); 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
 

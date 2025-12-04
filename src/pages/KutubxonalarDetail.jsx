@@ -42,6 +42,8 @@ const KutubxonalarDetail = () => {
     );
   }
 
+  console.log(currentLibrary);
+
   if (error || !currentLibrary) {
     return (
       <Container py="xl" ta="center">
@@ -73,6 +75,12 @@ const KutubxonalarDetail = () => {
         >
           Orqaga
         </Button>
+
+        <div className="">
+          {currentLibrary?.results?.books.map((el, index) => (
+            <li className="">{el.name}</li>
+          ))}
+        </div>
 
         <Card shadow="sm" radius="lg" withBorder p="xl" mb="xl">
           <Group align="start" gap="xl">
