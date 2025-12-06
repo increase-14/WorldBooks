@@ -54,13 +54,6 @@ const Nav = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <button
-            onClick={toggleColorScheme}
-            className="p-2 rounded-full hover:bg-[#e9e0d4] dark:hover:bg-[#4a3f30] transition text-xl"
-          >
-            Boddy
-          </button>
-
           <div className="relative group">
             <button className="p-2 rounded-full hover:bg-[#e9e0d4] dark:hover:bg-[#4a3f30] transition text-xl">
               Language
