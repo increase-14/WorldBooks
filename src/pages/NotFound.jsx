@@ -18,7 +18,6 @@ const NotFound = () => {
     >
       <Container size="sm" ta="center">
         <Stack align="center" spacing="xl">
-          {/* Большая цифра 404 с градиентом */}
           <Title
             order={1}
             fz={{ base: "6rem", sm: "10rem" }}
