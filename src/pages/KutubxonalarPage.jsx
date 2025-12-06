@@ -1,14 +1,18 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import useAppStore from "../store/useAppStore";
-import { IconBuilding, IconBooks } from "@tabler/icons-react";
+import { IconBooks } from "@tabler/icons-react";
 
 const KutubxonalarPage = () => {
-  const { libraries, loadLibraries, loadingLibraries, error } = useAppStore();
+  const { libraries = [], loadLibraries, loadingLibraries, error } = useAppStore();
 
   useEffect(() => {
-    if (libraries.length === 0) loadLibraries();
-  }, []);
+    if (!Array.isArray(libraries) || libraries.length === 0) {
+      loadLibraries();
+    }
+  }, [loadLibraries, libraries]);
+
+  const librariesList = Array.isArray(libraries) ? libraries : [];
 
   if (loadingLibraries) {
     return (
@@ -29,26 +33,24 @@ const KutubxonalarPage = () => {
   return (
     <div className="min-h-screen bg-white py-10 px-4">
       <h1 className="text-3xl font-bold text-brown-800 text-center mb-12">
-        Kutubxonalar ({libraries.length})
+        Kutubxonalar ({librariesList.length})
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {libraries.map((lib) => (
+        {librariesList.map((lib) => (
           <Link
             key={lib.id}
             to={`/kutubxonalar/${lib.id}`}
             className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow"
           >
-            {/* Картинка сверху */}
             <div className="h-48 w-full overflow-hidden">
               <img
                 src="https://ezma-client.vercel.app/assets/library-CY0z204p.webp"
-                alt={lib.name}
+                alt={lib.name || "Nomsiz kutubxona"}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               />
             </div>
 
-            {/* Контент */}
             <div className="p-6 bg-[#4e342e] text-white">
               <h2 className="text-xl font-semibold mb-2">{lib.name || "Nomsiz kutubxona"}</h2>
               <p className="text-sm mb-3">{lib.address || "Manzil ko'rsatilmagan"}</p>

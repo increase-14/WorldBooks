@@ -1,68 +1,86 @@
 import { create } from "zustand";
-import { api } from "../api/API";
+
+const BASE_URL = "https://org-ave-jimmy-learners.trycloudflare.com";
 
 const useAppStore = create((set) => ({
+  libraries: [],
   books: [],
+  currentLibrary: null,
   currentBook: null,
+
+  loadingLibraries: false,
   loadingBooks: false,
+  loadingLibraryDetail: false,  
   loadingBookDetail: false,
+
   error: null,
+
+  loadLibraries: async () => {
+    set({ loadingLibraries: true, error: null });
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/libraries/libraries/`);
+      const data = await res.json();
+
+      const list = Array.isArray(data) ? data : data.results || [];
+      set({ libraries: list });
+    } catch {
+      set({ error: "Kutubxonalar yuklanmadi" });
+    } finally {
+      set({ loadingLibraries: false });
+    }
+  },
 
   loadBooks: async () => {
     set({ loadingBooks: true, error: null });
     try {
-      const res = await api.get("/api/v1/books/books/");
-      set({ books: res.data.results || res.data });
-    } catch (err) {
+      const res = await fetch(`${BASE_URL}/api/v1/books/books/`);
+      const data = await res.json();
+
+      const list = Array.isArray(data) ? data : data.results || [];
+      set({ books: list });
+    } catch {
       set({ error: "Kitoblar yuklanmadi" });
     } finally {
       set({ loadingBooks: false });
     }
   },
 
+  loadLibraryDetail: async (id) => {
+    set({
+      loadingLibraryDetail: true,
+      currentLibrary: null,
+      error: null,
+    });
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/libraries/library/${id}/`);
+      if (!res.ok) throw new Error("Kutubxona topilmadi");
+
+      const library = await res.json();
+      set({ currentLibrary: library });
+    } catch {
+      set({ error: "Ma'lumotlar yuklanmadi", currentLibrary: null });
+    } finally {
+      set({ loadingLibraryDetail: false });
+    }
+  },
+
   loadBookDetail: async (id) => {
     set({ loadingBookDetail: true, currentBook: null, error: null });
     try {
-      const res = await api.get(`/api/v1/books/book/${id}/`);
-      set({ currentBook: res.data });
+      const res = await fetch(`${BASE_URL}/api/v1/books/book/${id}/`);
+      if (!res.ok) throw new Error("Kitob topilmadi");
+
+      const book = await res.json();
+      set({ currentBook: book });
     } catch (err) {
-      set({ error: "Kitob topilmadi", currentBook: null });
+      set({ error: err.message, currentBook: null });
     } finally {
       set({ loadingBookDetail: false });
     }
   },
 
-  addBook: async (bookData) => {
-    try {
-      const res = await api.post("/api/v1/books/books/", bookData);
-      set((state) => ({ books: [...state.books, res.data] }));
-      return res.data;
-    } catch (err) {
-      throw err;
-    }
-  },
-
-  updateBook: async (id, bookData) => {
-    try {
-      const res = await api.put(`/api/v1/books/book/${id}/`, bookData);
-      set((state) => ({
-        books: state.books.map((b) => (b.id === id ? res.data : b)),
-      }));
-      return res.data;
-    } catch (err) {
-      throw err;
-    }
-  },
-
-  deleteBook: async (id) => {
-    try {
-      await api.delete(`/api/v1/books/book/${id}/`);
-      set((state) => ({ books: state.books.filter((b) => b.id !== id) }));
-    } catch (err) {
-      throw err;
-    }
-  },
-
+  clearLibraryDetail: () => set({ currentLibrary: null }),
   clearBookDetail: () => set({ currentBook: null }),
 }));
 
