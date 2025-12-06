@@ -1,22 +1,10 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import useAppStore from "../store/useAppStore";
-import {
-  Container,
-  Title,
-  Text,
-  Badge,
-  Card,
-  SimpleGrid,
-  Loader,
-  Center,
-  Box,
-  Group,
-} from "@mantine/core";
-import { IconMapPin, IconBuilding, IconBooks } from "@tabler/icons-react";
+import { IconBuilding, IconBooks } from "@tabler/icons-react";
 
 const KutubxonalarPage = () => {
-  const { libraries, loadLibraries, loadingLibraries } = useAppStore();
+  const { libraries, loadLibraries, loadingLibraries, error } = useAppStore();
 
   useEffect(() => {
     if (libraries.length === 0) loadLibraries();
@@ -24,63 +12,56 @@ const KutubxonalarPage = () => {
 
   if (loadingLibraries) {
     return (
-      <Center h="70vh">
-        <Loader size="xl" color="blue" />
-      </Center>
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="animate-spin rounded-full h-14 w-14 border-t-4 border-b-4 border-brown-700 border-t-white"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20 text-red-600 text-xl">
+        Xatolik yuz berdi!
+      </div>
     );
   }
 
   return (
-    <Box py="xl" mih="100vh" bg="var(--mantine-color-body)">
-      <Container size="lg">
-        <Title ta="center" mb="xl" c="blue.6" fz="2.5rem" fw={800}>
-          Kutubxonalar ({libraries.length} ta)
-        </Title>
+    <div className="min-h-screen bg-white py-10 px-4">
+      <h1 className="text-3xl font-bold text-brown-800 text-center mb-12">
+        Kutubxonalar ({libraries.length})
+      </h1>
 
-        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-          {libraries.map((lib) => (
-            <Card
-              key={lib.id}
-              component={Link}
-              to={`/kutubxonalar/${lib.id}`}
-              shadow="sm"
-              radius="lg"
-              p="lg"
-              withBorder
-              style={{ cursor: "pointer" }}
-            >
-              <Group justify="apart" mb="md">
-                <IconBuilding size={28} color="#2563eb" />
-                {lib.latitude && lib.longitude ? (
-                  <Badge color="teal" variant="light">
-                    Xaritada bor
-                  </Badge>
-                ) : (
-                  <Badge color="orange" variant="light">
-                    {lib.address}
-                  </Badge>
-                )}
-              </Group>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {libraries.map((lib) => (
+          <Link
+            key={lib.id}
+            to={`/kutubxonalar/${lib.id}`}
+            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow"
+          >
+            {/* Картинка сверху */}
+            <div className="h-48 w-full overflow-hidden">
+              <img
+                src="https://ezma-client.vercel.app/assets/library-CY0z204p.webp"
+                alt={lib.name}
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
 
-              <Title order={4} fw={700}>
-                {lib.name || "Nomsiz kutubxona"}
-              </Title>
+            {/* Контент */}
+            <div className="p-6 bg-[#4e342e] text-white">
+              <h2 className="text-xl font-semibold mb-2">{lib.name || "Nomsiz kutubxona"}</h2>
+              <p className="text-sm mb-3">{lib.address || "Manzil ko'rsatilmagan"}</p>
 
-              <Text size="sm" c="dimmed" mt={6}>
-                {lib.address || "Manzil ko'rsatilmagan"}
-              </Text>
-
-              <Group mt="md" gap="xs" align="center">
-                <IconBooks size={20} color="#3b82f6" />
-                <Text size="sm" fw={600} c="blue.6">
-                  {lib.total_books || 0} ta kitob
-                </Text>
-              </Group>
-            </Card>
-          ))}
-        </SimpleGrid>
-      </Container>
-    </Box>
+              <div className="flex items-center gap-2 mt-2">
+                <IconBooks size={20} />
+                <span className="font-medium">{lib.total_books || 0} ta kitob</span>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 };
 

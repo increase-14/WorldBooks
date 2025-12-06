@@ -1,34 +1,17 @@
 import React, { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import useAppStore from "../store/useAppStore";
-import {
-  Container,
-  Title,
-  Text,
-  Loader,
-  Center,
-  Box,
-  Image,
-  Button,
-  Group,
-  Card,
-  SimpleGrid,
-  Badge,
-  Stack,
-} from "@mantine/core";
-import { IconArrowLeft, IconMapPin, IconBooks } from "@tabler/icons-react";
+import { IconArrowLeft } from "@tabler/icons-react";
 
 const KutubxonalarDetail = () => {
   const { id } = useParams();
+
   const currentLibrary = useAppStore((state) => state.currentLibrary);
-  const currentLibraryBooks = useAppStore(
-    (state) => state.currentLibraryBooks || []
-  );
   const loadingLibraryDetail = useAppStore(
     (state) => state.loadingLibraryDetail
   );
-  const loadLibraryDetail = useAppStore((state) => state.loadLibraryDetail);
   const error = useAppStore((state) => state.error);
+  const loadLibraryDetail = useAppStore((state) => state.loadLibraryDetail);
 
   useEffect(() => {
     if (id) loadLibraryDetail(id);
@@ -36,151 +19,95 @@ const KutubxonalarDetail = () => {
 
   if (loadingLibraryDetail) {
     return (
-      <Center h="70vh">
-        <Loader size="xl" color="blue" />
-      </Center>
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+      </div>
     );
   }
-
-  console.log(currentLibrary);
 
   if (error || !currentLibrary) {
     return (
-      <Container py="xl" ta="center">
-        <Title c="red">Kutubxona topilmadi</Title>
-        <Text c="dimmed" mt="md">
-          ID: {id}
-        </Text>
-        <Button
-          mt="lg"
-          component={Link}
+      <div className="max-w-2xl mx-auto py-20 text-center">
+        <h1 className="text-4xl font-bold text-red-600 mb-4">
+          Kutubxona topilmadi
+        </h1>
+        <p className="text-gray-500 text-lg mb-8">ID: {id}</p>
+
+        <Link
           to="/kutubxonalar"
-          leftSection={<IconArrowLeft />}
+          className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
         >
+          <IconArrowLeft size={20} />
           Orqaga
-        </Button>
-      </Container>
+        </Link>
+      </div>
     );
   }
 
+  const books = currentLibrary?.results?.books || [];
+
   return (
-    <Box py="xl" mih="100vh" bg="var(--mantine-color-body)">
-      <Container size="lg">
-        <Button
-          component={Link}
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Link
           to="/kutubxonalar"
-          variant="subtle"
-          leftSection={<IconArrowLeft />}
-          mb="xl"
+          className="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 mb-10 text-lg font-medium transition"
         >
+          <IconArrowLeft size={22} />
           Orqaga
-        </Button>
+        </Link>
 
-        <div className="">
-          {currentLibrary?.results?.books.map((el, index) => (
-            <li className="">{el.name}</li>
-          ))}
-        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">
+          Mavjud kitoblar
+        </h2>
 
-        <Card shadow="sm" radius="lg" withBorder p="xl" mb="xl">
-          <Group align="start" gap="xl">
-            <Image
-              src="https://i.pinimg.com/736x/a0/a8/f3/a0a8f3e594095a44f2071b459c91460c.jpg"
-              width={220}
-              height={220}
-              radius="lg"
-              fit="cover"
-            />
-            <Stack gap="md">
-              <Title order={2} fw={900} c="primary">
-                {currentLibrary.name}
-              </Title>
-              <Text size="lg" c="dimmed">
-                {currentLibrary.address}
-              </Text>
-
-              <Group gap="xl" mt="lg">
-                <Group align="center" gap="sm">
-                  <IconBooks size={28} color="#3b82f6" />
-                  <Text size="xl" fw={700}>
-                    {currentLibrary.total_books || 0} ta kitob
-                  </Text>
-                </Group>
-                <Group align="center" gap="sm">
-                  <IconMapPin
-                    size={28}
-                    color={currentLibrary.latitude ? "#10b981" : "#f97316"}
-                  />
-                  <Text
-                    size="lg"
-                    c={currentLibrary.latitude ? "teal" : "orange"}
-                    fw={600}
-                  >
-                    {currentLibrary.latitude
-                      ? "Xaritada bor"
-                      : "Koordinata yo'q"}
-                  </Text>
-                </Group>
-              </Group>
-            </Stack>
-          </Group>
-        </Card>
-
-        <Title order={2} mb="lg" c="blue.6">
-          Mavjud kitoblar ({currentLibraryBooks.length} ta)
-        </Title>
-
-        {currentLibraryBooks.length === 0 ? (
-          <Card shadow="sm" radius="lg" withBorder p="xl">
-            <Text ta="center" c="dimmed" size="lg" py="xl">
-              Bu kutubxonada hali kitoblar qo'shilmagan
-            </Text>
-          </Card>
+        {books.length === 0 ? (
+          <div className="text-center py-16 bg-white rounded-xl shadow">
+            <p className="text-xl text-gray-500">
+              Bu kutubxonada kitoblar hali qo'shilmagan
+            </p>
+          </div>
         ) : (
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="lg">
-            {currentLibraryBooks.map((book) => (
-              <Card
-                key={book.id}
-                component={Link}
-                to={`/kitoblar/${book.id}`}
-                shadow="sm"
-                radius="lg"
-                withBorder
-                p="md"
-                style={{ cursor: "pointer" }}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+            {books.map((el, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300"
               >
-                <Image
-                  src="https://i.pinimg.com/736x/a0/a8/f3/a0a8f3e594095a44f2071b459c91460c.jpg"
-                  height={180}
-                  fit="cover"
-                  radius="md"
-                  mb="md"
-                />
-                <Stack gap="xs">
-                  <Text fw={700} size="sm" lineClamp={2}>
-                    {book.title || "Nomsiz kitob"}
-                  </Text>
-                  {book.author && (
-                    <Text size="xs" c="dimmed">
-                      {book.author}
-                    </Text>
+                <div className="h-64 bg-gray-200 overflow-hidden">
+                  <img
+                    src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e"
+                    alt="book"
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
+
+                <div className="p-6 space-y-3">
+                  <h3 className="font-semibold text-xl text-gray-900">
+                    {el.name}
+                  </h3>
+
+                  <p className="text-gray-700">
+                    <span className="font-medium">Muallif:</span>{" "}
+                    {el.author || "Noma'lum"}
+                  </p>
+
+                  {el.publisher && (
+                    <p className="text-gray-500 text-sm">
+                      Nashriyot: {el.publisher}
+                    </p>
                   )}
-                  <Group justify="apart" mt="auto">
-                    {book.year && <Badge size="xs">{book.year}</Badge>}
-                    <Badge
-                      color={book.quantity_in_library > 0 ? "teal" : "red"}
-                      variant="filled"
-                    >
-                      {book.quantity_in_library || 0} ta
-                    </Badge>
-                  </Group>
-                </Stack>
-              </Card>
+
+                  <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium mt-2">
+                    Mavjud: {el.quantity_in_library} dona
+                  </span>
+                </div>
+              </div>
             ))}
-          </SimpleGrid>
+          </div>
         )}
-      </Container>
-    </Box>
+      </div>
+    </div>
   );
 };
 

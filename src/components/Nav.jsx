@@ -1,26 +1,13 @@
 import React from "react";
-import {
-  Container,
-  Group,
-  Text,
-  Box,
-  ActionIcon,
-  useMantineColorScheme,
-  useComputedColorScheme,
-  Menu,
-} from "@mantine/core";
-import { IconSun, IconMoon, IconWorld } from "@tabler/icons-react";
-import { NavLink as RouterNavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const Nav = () => {
   const { t, i18n } = useTranslation();
-  const { setColorScheme } = useMantineColorScheme();
-  const computedColorScheme = useComputedColorScheme("light");
   const location = useLocation();
 
   const toggleColorScheme = () => {
-    setColorScheme(computedColorScheme === "dark" ? "light" : "dark");
+    document.documentElement.classList.toggle("dark");
   };
 
   const changeLanguage = (lng) => {
@@ -40,142 +27,72 @@ const Nav = () => {
   ];
 
   return (
-    <Box
-      component="nav"
-      py="lg"
-      style={{
-        backgroundColor: "var(--mantine-color-body)",
-        borderBottom: "1px solid var(--mantine-color-default-border)",
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        backdropFilter: "blur(10px)",
-      }}
-    >
-      <Container size="xl">
-        <Group justify="space-between" align="center">
-          <Group justify="center" gap={100}>
-            {links.map((link) => {
-              const isActive = location.pathname === link.to;
-
-              return (
-                <RouterNavLink
-                  key={link.to}
-                  to={link.to}
-                  style={{ textDecoration: "none" }}
+    <nav className="sticky top-0 z-50 backdrop-blur bg-white/80 dark:bg-[#3b2f2f]/80 border-b border-[#d5c4b0] dark:border-[#4a3f30] shadow-sm">
+      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="flex gap-12">
+          {links.map((link) => {
+            const active = location.pathname === link.to;
+            return (
+              <NavLink key={link.to} to={link.to} className="relative group">
+                <span
+                  className={`text-lg tracking-wide transition ${
+                    active
+                      ? "text-[#8e6f51]"
+                      : "text-[#8a755c] dark:text-[#d5c4b0]"
+                  }`}
                 >
-                  <Box
-                    pos="relative"
-                    py="md"
-                    px="lg"
-                    style={{
-                      cursor: "pointer",
-                      borderRadius: "var(--mantine-radius-md)",
-                      transition: "all 0.3s ease",
-                    }}
-                    sx={{
-                      "&:hover": {
-                        backgroundColor: "var(--mantine-color-default-hover)",
-                      },
-                    }}
-                  >
-                    <Text
-                      size="xl"
-                      fw={isActive ? 800 : 500}
-                      c={isActive ? "indigo.5" : "dimmed"}
-                      style={{
-                        letterSpacing: "0.8px",
-                        transition: "all 0.3s ease",
-                      }}
-                    >
-                      {link.label}
-                    </Text>
+                  {link.label}
+                </span>
+                <span
+                  className={`absolute left-0 right-0 mx-auto bottom-[-6px] h-[3px] rounded-full transition-transform duration-300 bg-[#6b4f33] ${
+                    active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                  }`}
+                ></span>
+              </NavLink>
+            );
+          })}
+        </div>
 
-                    <Box
-                      style={{
-                        position: "absolute",
-                        bottom: 8,
-                        left: "10%",
-                        right: "10%",
-                        height: 4,
-                        background: "linear-gradient(90deg, #667eea, #764ba2)",
-                        borderRadius: 4,
-                        transform: isActive ? "scaleX(1)" : "scaleX(0)",
-                        transformOrigin: "center",
-                        transition:
-                          "transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
-                        opacity: isActive ? 1 : 0,
-                      }}
-                    />
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleColorScheme}
+            className="p-2 rounded-full hover:bg-[#e9e0d4] dark:hover:bg-[#4a3f30] transition text-xl"
+          >
+            Boddy
+          </button>
 
-                    {isActive && (
-                      <Box
-                        style={{
-                          position: "absolute",
-                          top: -14,
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                        }}
-                      >
-                        <Box
-                          w={10}
-                          h={10}
-                          bg="indigo.5"
-                          style={{
-                            borderRadius: "50%",
-                            boxShadow: "0 0 15px var(--mantine-color-indigo-5)",
-                          }}
-                        />
-                      </Box>
-                    )}
-                  </Box>
-                </RouterNavLink>
-              );
-            })}
-          </Group>
+          <div className="relative group">
+            <button className="p-2 rounded-full hover:bg-[#e9e0d4] dark:hover:bg-[#4a3f30] transition text-xl">
+              Language
+            </button>
+            <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-[#3b2f2f] shadow-xl rounded-xl p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
+              <p className="px-3 py-1 text-sm text-[#8a755c] dark:text-[#d5c4b0]">
+                Til
+              </p>
+              {languageOptions.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => changeLanguage(lang.code)}
+                  className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-[#f5efe8] dark:hover:bg-[#4a3f30] transition ${
+                    i18n.language === lang.code
+                      ? "font-bold text-[#6b4f33]"
+                      : "text-[#8a755c] dark:text-[#d5c4b0]"
+                  }`}
+                >
+                  <span>{lang.flag}</span> {lang.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-          <Group>
-            <ActionIcon
-              onClick={toggleColorScheme}
-              size="lg"
-              variant="subtle"
-              color={computedColorScheme === "dark" ? "yellow" : "dark"}
-            >
-              {computedColorScheme === "dark" ? (
-                <IconSun size={22} stroke={1.5} />
-              ) : (
-                <IconMoon size={22} stroke={1.5} />
-              )}
-            </ActionIcon>
-
-            <Menu shadow="md" width={200}>
-              <Menu.Target>
-                <ActionIcon size="lg" variant="subtle">
-                  <IconWorld size={22} stroke={1.5} />
-                </ActionIcon>
-              </Menu.Target>
-
-              <Menu.Dropdown>
-                <Menu.Label>Til</Menu.Label>
-                {languageOptions.map((lang) => (
-                  <Menu.Item
-                    key={lang.code}
-                    leftSection={<Text span>{lang.flag}</Text>}
-                    onClick={() => changeLanguage(lang.code)}
-                    style={{
-                      fontWeight:
-                        i18n.language === lang.code ? "bold" : "normal",
-                    }}
-                  >
-                    {lang.label}
-                  </Menu.Item>
-                ))}
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
-        </Group>
-      </Container>
-    </Box>
+          <Link to="/profile">
+            <button className="flex items-center gap-2 px-4 py-2 bg-[#8e6f51] hover:bg-[#6b4f33] text-white rounded-xl transition">
+              <span>Profil</span>
+            </button>
+          </Link>
+        </div>
+      </div>
+    </nav>
   );
 };
 
