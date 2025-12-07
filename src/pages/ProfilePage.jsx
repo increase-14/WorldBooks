@@ -9,8 +9,16 @@ const ProfilePage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
     api
-      .get("/api/v1/auth/profile/")
+      .get("/api/v1/auth/profile/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => setProfile(res.data))
       .catch((err) => console.log("PROFILE ERROR:", err));
   }, []);

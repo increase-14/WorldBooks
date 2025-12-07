@@ -5,8 +5,8 @@
       "libraries": "Библиотеки"
     },
     "footer": {
-      "copyright": "© 2025 Каталог книг",
-      "madeFor": "Создано для любителей книг"
+      "copyright": "",
+      "madeFor": ""
     },
     "notFound": {
       "title": "Упс! Страница не найдена",

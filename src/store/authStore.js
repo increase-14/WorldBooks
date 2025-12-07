@@ -9,11 +9,15 @@ const authStore = create(
       refresh: null,
       isAuth: false,
 
-      login: (user, access, refresh) =>
-        set({ user, access, refresh, isAuth: true }),
+      login: (user, access, refresh) => {
+        localStorage.setItem("token", access);
+        set({ user, access, refresh, isAuth: true });
+      },
 
-      logout: () =>
-        set({ user: null, access: null, refresh: null, isAuth: false }),
+      logout: () => {
+        localStorage.removeItem("token"); 
+        set({ user: null, access: null, refresh: null, isAuth: false });
+      },
     }),
     { name: "auth-store" }
   )

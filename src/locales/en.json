@@ -5,8 +5,8 @@
       "libraries": "Libraries"
     },
     "footer": {
-      "copyright": "© 2025 Books Catalog",
-      "madeFor": "Made for book lovers"
+      "copyright": "",
+      "madeFor": ""
     },
     "notFound": {
       "title": "Oops! Page not found",

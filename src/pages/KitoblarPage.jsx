@@ -42,7 +42,7 @@ const KitoblarPage = () => {
       setOpenModal(false);
     } catch (err) {
       console.error(err);
-      alert("Kitob qo'shishda xatolik");
+      alert(err.message || "Kitob qo'shishda xatolik");
     }
   };
 
@@ -50,8 +50,9 @@ const KitoblarPage = () => {
     if (window) {
       try {
         await deleteBook(id);
-      } catch {
-        console.log("Kitobni o'chirishda xatolik");
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "Kitobni o'chirishda xatolik");
       }
     }
   };

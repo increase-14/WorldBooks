@@ -3,11 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../api/API";
 import { toast } from "react-toastify";
+import authStore from "../store/authStore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const login = authStore((state) => state.login);
 
   const loginMutation = useMutation({
     mutationFn: async (body) => {
@@ -17,7 +19,7 @@ const LoginPage = () => {
 
     onSuccess: (data) => {
       toast.success("Muvaffaqiyatli tizimga kirdingiz!");
-      localStorage.setItem("token", data.access);
+      login(data.user, data.access, data.refresh); 
       navigate("/profile");
     },
 
@@ -27,10 +29,7 @@ const LoginPage = () => {
   });
 
   const handleLogin = () => {
-    loginMutation.mutate({
-      phone: phone,
-      password: password,
-    });
+    loginMutation.mutate({ phone, password });
   };
 
   return (
@@ -49,9 +48,7 @@ const LoginPage = () => {
             ← Orqaga
           </Link>
 
-          <h1 className="text-2xl font-bold text-[#6b4f33] mb-6">
-            Tizimga kirish
-          </h1>
+          <h1 className="text-2xl font-bold text-[#6b4f33] mb-6">Tizimga kirish</h1>
 
           <label className="text-[#6b4f33] font-medium">Telefon raqam</label>
           <input

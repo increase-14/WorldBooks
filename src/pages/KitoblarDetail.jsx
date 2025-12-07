@@ -1,26 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import axios from "axios";
 
 const KitoblarDetail = () => {
   const { id } = useParams();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch(
-        `https://org-ave-jimmy-learners.trycloudflare.com/api/v1/books/book/${id}/`
-      );
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `https://org-ave-jimmy-learners.trycloudflare.com/api/v1/books/book/${id}/`,
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }
+        );
 
-      if (!res.ok) {
+        setBook(res.data);
+      } catch (err) {
+        console.error(err);
+        setError("Kitob topilmadi");
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const data = await res.json();
-      setBook(data);
-
-      setLoading(false);
     };
 
     load();
@@ -33,11 +38,9 @@ const KitoblarDetail = () => {
       </div>
     );
 
-  if (!book)
+  if (error)
     return (
-      <div className="text-center py-10 text-red-600 animate-fade">
-        Kitob topilmadi
-      </div>
+      <div className="text-center py-10 text-red-600 animate-fade">{error}</div>
     );
 
   return (
