@@ -33,9 +33,7 @@ const Nav = () => {
   return (
     <nav className="sticky top-0 z-50 backdrop-blur bg-white/80 dark:bg-[#3b2f2f]/80 border-b border-[#d5c4b0] dark:border-[#4a3f30] shadow-sm">
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo / Navigation */}
         <div className="flex items-center gap-6">
-          {/* Burger (mobile) */}
           <button
             className="md:hidden p-2 rounded-lg hover:bg-[#e9e0d4] dark:hover:bg-[#4a3f30] transition"
             onClick={() => setOpenMenu(!openMenu)}
@@ -43,7 +41,6 @@ const Nav = () => {
             {openMenu ? <X size={22} /> : <Menu size={22} />}
           </button>
 
-          {/* Links (Desktop) */}
           <div className="hidden md:flex gap-12">
             {links.map((link) => {
               const active = location.pathname === link.to;
@@ -70,20 +67,17 @@ const Nav = () => {
             })}
           </div>
         </div>
-
-        {/* Profile + Language */}
         <div className="flex items-center gap-4">
-          {/* Language Dropdown */}
           <div className="relative">
             <button
               className="p-2 rounded-full hover:bg-[#e9e0d4] dark:hover:bg-[#4a3f30] transition text-sm md:text-base"
               onClick={() => setOpenLang(!openLang)}
             >
-              🌍 {i18n.language.toUpperCase()}
+              {i18n.language.toUpperCase()}
             </button>
 
             {openLang && (
-              <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-[#3b2f2f] shadow-xl rounded-xl p-2">
+              <div className="absolute  right-0 mt-2 w-40 bg-white dark:bg-[#3b2f2f] shadow-xl rounded-xl p-2">
                 <p className="px-3 py-1 text-sm text-[#8a755c] dark:text-[#d5c4b0]">
                   Til
                 </p>
@@ -91,10 +85,10 @@ const Nav = () => {
                   <button
                     key={lang.code}
                     onClick={() => changeLanguage(lang.code)}
-                    className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-[#f5efe8] dark:hover:bg-[#4a3f30] transition ${
+                    className={`w-full  text-left px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-[#f5efe8] dark:hover:bg-[#4a3f30] transition ${
                       i18n.language === lang.code
                         ? "font-bold text-[#6b4f33]"
-                        : "text-[#8a755c] dark:text-[#d5c4b0]"
+                        : "text-[#d5c4b0] dark:text-[#d5c4b0]"
                     }`}
                   >
                     <span>{lang.flag}</span> {lang.label}
@@ -104,16 +98,16 @@ const Nav = () => {
             )}
           </div>
 
-          {/* Profile Button */}
           <Link to="/profile">
-            <button className="px-3 md:px-4 py-2 bg-[#8e6f51] hover:bg-[#6b4f33] text-white rounded-xl transition text-sm md:text-base">
-              Profil
+            <button className="px-3 md:px-4 py-2 cursor-pointer">
+              <img
+                className="w-12"
+                src="https://ezma-client.vercel.app/assets/user-D__q57DX.png"
+              />
             </button>
           </Link>
         </div>
       </div>
-
-      {/* Mobile Menu */}
       {openMenu && (
         <div className="md:hidden bg-white dark:bg-[#3b2f2f] border-t border-[#d5c4b0] dark:border-[#4a3f30] p-4 space-y-3 transition">
           {links.map((link) => {

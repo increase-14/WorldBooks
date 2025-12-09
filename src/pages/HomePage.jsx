@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import useAppStore from "../store/useAppStore";
+import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 const HomePage = () => {
   const { books, loadBooks, loadingBooks } = useAppStore();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
 
+  const { t, i18n } = useTranslation();
+
   useEffect(() => {
     loadBooks();
   }, []);
+
   const searchBooks = async () => {
     if (!query.trim()) {
       setResults([]);
@@ -17,23 +22,31 @@ const HomePage = () => {
     }
 
     try {
-      const res = await fetch(
-        `https://org-ave-jimmy-learners.trycloudflare.com/api/v1/books/search/book/?q=${query}`
+      const res = await axios.get(
+        `https://org-ave-jimmy-learners.trycloudflare.com/api/v1/books/search/book/`,
+        {
+          params: { q: query },
+        }
       );
-      const data = await res.json();
-      setResults(Array.isArray(data) ? data : []);
-    } catch {
+
+      setResults(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Search error:", err);
       setResults([]);
     }
   };
 
   const list = results.length > 0 ? results : books.slice(0, 5);
 
+  const handleKeyPress = (e) => {
+    if (e.key) searchBooks();
+  };
+
   return (
     <div className="min-h-screen bg-[#f4efe9] py-10">
       <div className="max-w-6xl mx-auto px-4">
         <h1 className="text-4xl text-center font-extrabold text-[#6b5238] mb-10">
-          Kitoblar katalogi
+          {t("home.book")}
         </h1>
 
         <div className="bg-white shadow rounded-xl p-5 mb-10 border border-[#d2b9a0]">
@@ -43,11 +56,8 @@ const HomePage = () => {
               placeholder="Kitob..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key && searchBooks()}
+              onKeyDown={handleKeyPress}
             />
-            <button className="px-5 py-3 bg-[#6b5238] text-white rounded-xl hover:bg-[#473624] transition">
-              Izlash
-            </button>
           </div>
         </div>
 

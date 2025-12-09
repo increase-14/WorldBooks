@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
-import { api } from "../api/API";
-import { toast } from "react-toastify";
+import { api } from "../store/useAppStore";
 import authStore from "../store/authStore";
+import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -16,21 +16,15 @@ const LoginPage = () => {
       const res = await api.post("/api/v1/auth/login/", body);
       return res.data;
     },
-
     onSuccess: (data) => {
       toast.success("Muvaffaqiyatli tizimga kirdingiz!");
-      login(data.user, data.access, data.refresh); 
+      login(data.user, data.access, data.refresh);
       navigate("/profile");
     },
-
-    onError: () => {
-      toast.error("Telefon yoki parol xato");
-    },
+    onError: () => toast.error("Telefon yoki parol xato"),
   });
 
-  const handleLogin = () => {
-    loginMutation.mutate({ phone, password });
-  };
+  const handleLogin = () => loginMutation.mutate({ phone, password });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f4efe9] px-4">
@@ -50,7 +44,6 @@ const LoginPage = () => {
 
           <h1 className="text-2xl font-bold text-[#6b4f33] mb-6">Tizimga kirish</h1>
 
-          <label className="text-[#6b4f33] font-medium">Telefon raqam</label>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -60,7 +53,6 @@ const LoginPage = () => {
             onKeyDown={(e) => e.key === "Enter" && handleLogin()}
           />
 
-          <label className="text-[#6b4f33] font-medium mt-4">Parol</label>
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}

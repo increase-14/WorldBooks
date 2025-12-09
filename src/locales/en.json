@@ -1,17 +1,30 @@
 {
-    "nav": {
-      "home": "Home",
-      "books": "Books",
-      "libraries": "Libraries"
-    },
-    "footer": {
-      "copyright": "",
-      "madeFor": ""
-    },
-    "notFound": {
-      "title": "Oops! Page not found",
-      "description": "The page you are looking for does not exist or has been deleted.",
-      "homeButton": "Go to homepage",
-      "booksButton": "Go to books catalog"
-    }
+  "nav": {
+    "home": "Home",
+    "books": "Books",
+    "libraries": "Libraries"
+  },
+  "home": {
+    "book": "Book catalog"
+  },
+  "kitoblar": {
+    "book": "Books"
+  },
+  "kutubxonalar": {
+    "kutub": "Libraries"
+  },
+  "footer": {
+    "t1": "Book catalog",
+    "home": "Home",
+    "books": "Books",
+    "libraries": "Libraries",
+    "t2": "© 2025. All rights reserved.",
+    "t3": "Made for book lovers"
+  },
+  "notFound": {
+    "title": "Oops! Page not found",
+    "description": "The page you are looking for does not exist or has been deleted.",
+    "homeButton": "Go to homepage",
+    "booksButton": "Go to books catalog"
   }
+}

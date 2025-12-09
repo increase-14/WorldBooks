@@ -2,9 +2,17 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import useAppStore from "../store/useAppStore";
 import { IconBooks } from "@tabler/icons-react";
+import { useTranslation } from "react-i18next";
 
 const KutubxonalarPage = () => {
-  const { libraries = [], loadLibraries, loadingLibraries, error } = useAppStore();
+  const {
+    libraries = [],
+    loadLibraries,
+    loadingLibraries,
+    error,
+  } = useAppStore();
+
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     if (!Array.isArray(libraries) || libraries.length === 0) {
@@ -33,7 +41,7 @@ const KutubxonalarPage = () => {
   return (
     <div className="min-h-screen bg-white py-10 px-4">
       <h1 className="text-3xl font-bold text-brown-800 text-center mb-12">
-        Kutubxonalar ({librariesList.length})
+        {t("kutubxonalar.kutub")} ({librariesList.length})
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -52,12 +60,18 @@ const KutubxonalarPage = () => {
             </div>
 
             <div className="p-6 bg-[#4e342e] text-white">
-              <h2 className="text-xl font-semibold mb-2">{lib.name || "Nomsiz kutubxona"}</h2>
-              <p className="text-sm mb-3">{lib.address || "Manzil ko'rsatilmagan"}</p>
+              <h2 className="text-xl font-semibold mb-2">
+                {lib.name || "Nomsiz kutubxona"}
+              </h2>
+              <p className="text-sm mb-3">
+                {lib.address || "Manzil ko'rsatilmagan"}
+              </p>
 
               <div className="flex items-center gap-2 mt-2">
                 <IconBooks size={20} />
-                <span className="font-medium">{lib.total_books || 0} ta kitob</span>
+                <span className="font-medium">
+                  {lib.total_books || 0} ta kitob
+                </span>
               </div>
             </div>
           </Link>

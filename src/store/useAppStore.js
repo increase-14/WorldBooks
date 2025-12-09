@@ -1,6 +1,15 @@
 import { create } from "zustand";
+import axios from "axios";
 
 const BASE_URL = "https://org-ave-jimmy-learners.trycloudflare.com";
+
+export const api = axios.create({ baseURL: BASE_URL });
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
 const useAppStore = create((set, get) => ({
   libraries: [],
@@ -12,16 +21,13 @@ const useAppStore = create((set, get) => ({
   loadingBooks: false,
   loadingLibraryDetail: false,
   loadingBookDetail: false,
-
   error: null,
 
   loadLibraries: async () => {
     set({ loadingLibraries: true, error: null });
     try {
-      const res = await fetch(`${BASE_URL}/api/v1/libraries/libraries/`);
-      const data = await res.json();
-      const list = Array.isArray(data) ? data : data.results || [];
-      set({ libraries: list });
+      const { data } = await api.get("/api/v1/libraries/libraries/");
+      set({ libraries: Array.isArray(data) ? data : data.results || [] });
     } catch {
       set({ error: "Kutubxonalar yuklanmadi" });
     } finally {
@@ -32,15 +38,8 @@ const useAppStore = create((set, get) => ({
   loadBooks: async () => {
     set({ loadingBooks: true, error: null });
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${BASE_URL}/api/v1/books/books/`, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
-      const data = await res.json();
-      const list = Array.isArray(data) ? data : data.results || [];
-      set({ books: list });
+      const { data } = await api.get("/api/v1/books/books/");
+      set({ books: Array.isArray(data) ? data : data.results || [] });
     } catch {
       set({ error: "Kitoblar yuklanmadi" });
     } finally {
@@ -51,20 +50,8 @@ const useAppStore = create((set, get) => ({
   addBook: async (book) => {
     set({ loadingBooks: true, error: null });
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${BASE_URL}/api/v1/books/books/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-        body: JSON.stringify(book),
-      });
-
-      if (!res.ok) throw new Error("Kitob qo'shilmadi");
-
-      const newBook = await res.json();
-      set({ books: [...get().books, newBook] });
+      const { data } = await api.post("/api/v1/books/books/", book);
+      set({ books: [...get().books, data] });
     } catch (err) {
       set({ error: err.message });
       throw err;
@@ -76,16 +63,7 @@ const useAppStore = create((set, get) => ({
   deleteBook: async (id) => {
     set({ loadingBooks: true, error: null });
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${BASE_URL}/api/v1/books/book/${id}/`, {
-        method: "DELETE",
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
-
-      if (!res.ok) throw new Error("Kitob o'chirilmadi");
-
+      await api.delete(`/api/v1/books/book/${id}/`);
       set({ books: get().books.filter((b) => b.id !== id) });
     } catch (err) {
       set({ error: err.message });
@@ -96,31 +74,22 @@ const useAppStore = create((set, get) => ({
   },
 
   loadLibraryDetail: async (id) => {
-    set({ loadingLibraryDetail: true, currentLibrary: null, error: null });
+    set({ loadingLibraryDetail: true, error: null, currentLibrary: null });
     try {
-      const res = await fetch(`${BASE_URL}/api/v1/libraries/library/${id}/`);
-      if (!res.ok) throw new Error("Kutubxona topilmadi");
-      const library = await res.json();
-      set({ currentLibrary: library });
+      const { data } = await api.get(`/api/v1/libraries/library/${id}/`);
+      set({ currentLibrary: data });
     } catch {
-      set({ error: "Ma'lumotlar yuklanmadi", currentLibrary: null });
+      set({ error: "Kutubxona topilmadi", currentLibrary: null });
     } finally {
       set({ loadingLibraryDetail: false });
     }
   },
 
   loadBookDetail: async (id) => {
-    set({ loadingBookDetail: true, currentBook: null, error: null });
+    set({ loadingBookDetail: true, error: null, currentBook: null });
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${BASE_URL}/api/v1/books/book/${id}/`, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
-      if (!res.ok) throw new Error("Kitob topilmadi");
-      const book = await res.json();
-      set({ currentBook: book });
+      const { data } = await api.get(`/api/v1/books/book/${id}/`);
+      set({ currentBook: data });
     } catch (err) {
       set({ error: err.message, currentBook: null });
     } finally {
