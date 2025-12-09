@@ -355,7 +355,7 @@ const KitoblarPage = () => {
               Bir nechta kitob
             </button>
             <label className="block w-full py-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition text-center cursor-pointer font-medium text-lg">
-              CSV fayldan yuklash
+              Fayl yuklash
               <input
                 type="file"
                 accept=".csv"
