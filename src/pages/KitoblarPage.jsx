@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAppStore, { api } from "../store/useAppStore";
 import { useTranslation } from "react-i18next";
@@ -129,7 +129,6 @@ const KitoblarPage = () => {
   const [localBooks, setLocalBooks] = useState([]);
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const gridRef = useRef(null);
 
   const [showSingle, setShowSingle] = useState(false);
   const [showTen, setShowTen] = useState(false);
@@ -143,6 +142,7 @@ const KitoblarPage = () => {
     year: "",
     quantity_in_library: "1",
   });
+
   const [tenBooks, setTenBooks] = useState(
     Array(10)
       .fill(null)
@@ -161,13 +161,7 @@ const KitoblarPage = () => {
   useEffect(() => {
     if (books.length === 0) loadBooks();
     setLocalBooks(books);
-
-    if (books.length > localBooks.length && gridRef.current) {
-      setTimeout(() => {
-        gridRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
-      }, 300);
-    }
-  }, [books]);
+  }, [books, loadBooks]);
 
   const handleRename = (id, newName) => {
     setLocalBooks((prev) =>
@@ -196,12 +190,13 @@ const KitoblarPage = () => {
   };
 
   const handleAddSingle = async () => {
-    if (!singleForm.name.trim())
+    if (!singleForm.name.trim()) {
       return notifications.show({
         title: "Xatolik",
         message: "Kitob nomi bo'sh!",
         color: "red",
       });
+    }
     try {
       await addBook({
         ...singleForm,
@@ -234,12 +229,13 @@ const KitoblarPage = () => {
 
   const handleAddTenBooks = async () => {
     const valid = tenBooks.filter((b) => b.name.trim());
-    if (valid.length === 0)
+    if (valid.length === 0) {
       return notifications.show({
         title: "Xatolik",
         message: "Hech bo'lmaganda 1 ta nom kiriting!",
         color: "red",
       });
+    }
 
     setTenLoading(true);
     let success = 0;
@@ -354,12 +350,13 @@ const KitoblarPage = () => {
   };
 
   const exportExcel = () => {
-    if (localBooks.length === 0)
+    if (localBooks.length === 0) {
       return notifications.show({
         title: "Xatolik",
         message: "Kitoblar yo'q!",
         color: "red",
       });
+    }
     const data = localBooks.map((b) => ({
       Nom: b.name,
       Muallif: b.author || "",
@@ -390,12 +387,6 @@ const KitoblarPage = () => {
             {t("kitoblar.book")} ({localBooks.length})
           </h1>
           <div className="flex gap-4">
-            <button
-              onClick={exportExcel}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center gap-2"
-            >
-              <IconDownload size={20} /> Excel yuklab olish
-            </button>
             <label className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium cursor-pointer transition flex items-center gap-2">
               <IconUpload size={20} /> Excel yuklash
               <input
@@ -415,10 +406,7 @@ const KitoblarPage = () => {
           +
         </button>
 
-        <div
-          ref={gridRef}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {localBooks.map((book) => (
             <BookCard
               key={book.id}

@@ -93,6 +93,12 @@ const ProfilePage = () => {
           </button>
         </div>
 
+        {/* <div>
+          <YMaps>
+              <Map defaultState={{ center: [55.75, 37.57], zoom: 9 }} />
+          </YMaps>
+        </div> */}
+
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h3 className="text-2xl font-bold text-gray-800 mb-8 flex items-center justify-between">
             <span>Kitoblarim</span>
