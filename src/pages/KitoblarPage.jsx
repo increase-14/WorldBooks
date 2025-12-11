@@ -1,8 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import useAppStore from "../store/useAppStore";
+import useAppStore, { api } from "../store/useAppStore";
 import { useTranslation } from "react-i18next";
-import { api } from "../store/useAppStore";
+import * as XLSX from "xlsx";
+import { notifications } from "@mantine/notifications";
+import {
+  IconCheck,
+  IconX,
+  IconUpload,
+  IconDownload,
+  IconLoader2,
+} from "@tabler/icons-react";
 
 const BookCard = ({ book, onDelete, onRename }) => {
   const [isRenaming, setIsRenaming] = useState(false);
@@ -10,93 +18,85 @@ const BookCard = ({ book, onDelete, onRename }) => {
   const navigate = useNavigate();
 
   const handleSave = async () => {
-    if (!newName.trim() || newName === book.name) {
-      setIsRenaming(false);
-      return;
-    }
-
+    if (!newName.trim() || newName === book.name) return setIsRenaming(false);
     try {
-      const payload = {
-        name: newName.trim(),
-        author: book.author || "",
-        publisher: book.publisher || "",
-        year: book.year || new Date().getFullYear(),
-        quantity_in_library: book.quantity_in_library || 1,
-        library: book.library || 1,
-      };
-
-      await api.put(`/api/v1/books/book/${book.id}/`, payload);
+      await api.put(`/api/v1/books/book/${book.id}/`, { name: newName.trim() });
       onRename(book.id, newName.trim());
+      notifications.show({
+        title: "Muvaffaqiyatli",
+        message: "Kitob nomi o'zgartirildi",
+        color: "green",
+        icon: <IconCheck />,
+      });
       setIsRenaming(false);
     } catch {
-      alert("Nomni o'zgartirib bo'lmadi");
+      notifications.show({
+        title: "Xatolik",
+        message: "Nomni o'zgartirib bo'lmadi",
+        color: "red",
+        icon: <IconX />,
+      });
     }
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
       <div
-        className="h-56 w-full overflow-hidden cursor-pointer"
+        className="h-56 cursor-pointer"
         onClick={() => navigate(`/kitoblar/${book.id}`)}
       >
         <img
-          src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+          src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=800"
           alt={book.name}
-          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
         />
       </div>
-
       <div className="p-5 bg-[#4e342e] text-white">
         {isRenaming ? (
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex gap-2 mb-3">
             <input
-              type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSave()}
-              className="flex-1 px-3 py-1 text-black rounded text-sm"
+              className="flex-1 px-3 py-1.5 text-black rounded text-sm"
               autoFocus
-              onClick={(e) => e.stopPropagation()}
             />
-            <button onClick={handleSave} className="text-green-400 text-sm">
-              Save
+            <button
+              onClick={handleSave}
+              className="text-green-400 text-xs font-bold"
+            >
+              OK
             </button>
             <button
               onClick={() => {
                 setIsRenaming(false);
                 setNewName(book.name);
               }}
-              className="text-red-400 text-sm"
+              className="text-red-400 text-xs font-bold"
             >
-              Cancel
+              X
             </button>
           </div>
         ) : (
-          <h2 className="text-lg font-semibold mb-2 line-clamp-2">
-            {book.name}
-          </h2>
+          <h2 className="text-lg font-bold mb-2 line-clamp-2">{book.name}</h2>
         )}
 
-        {book.author && (
-          <p className="text-sm mb-1 opacity-90">{book.author}</p>
-        )}
+        {book.author && <p className="text-sm opacity-90">{book.author}</p>}
         {book.publisher && (
-          <p className="text-xs mb-1 opacity-80">{book.publisher}</p>
+          <p className="text-xs opacity-80">{book.publisher}</p>
         )}
-        {book.year && (
-          <p className="text-xs mb-1 opacity-80">Yil: {book.year}</p>
-        )}
+        {book.year && <p className="text-xs opacity-80">Yil: {book.year}</p>}
 
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
+          className={`inline-block mt-3 px-3 py-1 rounded-full text-xs font-bold ${
             book.quantity_in_library > 0
               ? "bg-green-100 text-green-800"
-              : "bg-red-500 text-white"
+              : "bg-red-600 text-white"
           }`}
         >
           {book.quantity_in_library > 0
             ? `${book.quantity_in_library} ta`
-            : "Mavjud emas"}
+            : "Yo'q"}
         </span>
 
         <div className="mt-4 flex gap-3">
@@ -105,16 +105,16 @@ const BookCard = ({ book, onDelete, onRename }) => {
               e.stopPropagation();
               setIsRenaming(true);
             }}
-            className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition text-sm font-medium"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-medium transition"
           >
             Rename
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(book.id);
+              if (confirm("O'chirish?")) onDelete(book.id);
             }}
-            className="flex-1 bg-red-600 text-white py-2 rounded hover:bg-red-700 transition text-sm font-medium"
+            className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm font-medium transition"
           >
             Delete
           </button>
@@ -129,160 +129,45 @@ const KitoblarPage = () => {
   const [localBooks, setLocalBooks] = useState([]);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const gridRef = useRef(null);
 
-  const [showCrudMenu, setShowCrudMenu] = useState(false);
-  const [showSingleModal, setShowSingleModal] = useState(false);
-  const [showMultiModal, setShowMultiModal] = useState(false);
+  const [showSingle, setShowSingle] = useState(false);
+  const [showTen, setShowTen] = useState(false);
+  const [showExcel, setShowExcel] = useState(false);
+  const [excelData, setExcelData] = useState([]);
 
-  const [singleBook, setSingleBook] = useState({
-    name: "",
-    author: "",
-    publisher: "",
-    year: "",
-    quantity_in_library: "",
-  });
-
-  const [multiBooksList, setMultiBooksList] = useState([]);
-  const [currentMultiBook, setCurrentMultiBook] = useState({
+  const [singleForm, setSingleForm] = useState({
     name: "",
     author: "",
     publisher: "",
     year: "",
     quantity_in_library: "1",
   });
-
-  useEffect(() => {
-    if (books.length === 0) loadBooks();
-    setLocalBooks(books);
-  }, [books]);
-
-  const handleSingleChange = (e) =>
-    setSingleBook({ ...singleBook, [e.target.name]: e.target.value });
-
-  const handleAddSingleBook = async () => {
-    if (!singleBook.name.trim()) return alert("Kitob nomi kiritilishi kerak");
-    try {
-      await addBook({
-        ...singleBook,
-        year: Number(singleBook.year) || new Date().getFullYear(),
-        quantity_in_library: Number(singleBook.quantity_in_library) || 1,
-        library: 1,
-      });
-      setSingleBook({
+  const [tenBooks, setTenBooks] = useState(
+    Array(10)
+      .fill(null)
+      .map(() => ({
         name: "",
         author: "",
         publisher: "",
         year: "",
-        quantity_in_library: "",
-      });
-      setShowSingleModal(false);
-      setShowCrudMenu(false);
-    } catch {
-      alert("Xatolik yuz berdi");
+        quantity_in_library: "1",
+      }))
+  );
+
+  const [tenLoading, setTenLoading] = useState(false);
+  const [excelLoading, setExcelLoading] = useState(false);
+
+  useEffect(() => {
+    if (books.length === 0) loadBooks();
+    setLocalBooks(books);
+
+    if (books.length > localBooks.length && gridRef.current) {
+      setTimeout(() => {
+        gridRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 300);
     }
-  };
-
-  const addToMultiList = () => {
-    if (!currentMultiBook.name.trim())
-      return alert("Kitob nomi kiritilishi kerak");
-    setMultiBooksList([...multiBooksList, { ...currentMultiBook }]);
-    setCurrentMultiBook({
-      name: "",
-      author: "",
-      publisher: "",
-      year: "",
-      quantity_in_library: "1",
-    });
-  };
-
-  const removeFromMultiList = (i) =>
-    setMultiBooksList(multiBooksList.filter((_, idx) => idx !== i));
-
-  const handleAddMultiBooks = async () => {
-    if (multiBooksList.length === 0) return;
-    let success = 0;
-    for (const book of multiBooksList) {
-      try {
-        await addBook({
-          ...book,
-          year: Number(book.year) || new Date().getFullYear(),
-          quantity_in_library: Number(book.quantity_in_library) || 1,
-          library: 1,
-        });
-        success++;
-      } catch {
-        console.error("Multi add error");
-      }
-    }
-    alert(`${success} ta kitob qo'shildi`);
-    setShowMultiModal(false);
-    setShowCrudMenu(false);
-    setMultiBooksList([]);
-  };
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file || !file.name.toLowerCase().endsWith(".csv"))
-      return alert("Faqat .csv fayl!");
-
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      try {
-        const lines = evt.target.result
-          .split("\n")
-          .map((l) => l.trim())
-          .filter((l) => l);
-        if (lines.length === 0) return alert("Fayl bo'sh!");
-
-        let success = 0;
-        const start = lines[0].toLowerCase().includes("name") ? 1 : 0;
-
-        for (let i = start; i < lines.length; i++) {
-          const cols = lines[i]
-            .split(",")
-            .map((s) => s.trim().replace(/^"|"$/g, ""));
-          if (!cols[0]) continue;
-
-          const [
-            name,
-            author = "Noma'lum",
-            publisher = "",
-            year = "",
-            qty = "1",
-          ] = cols;
-
-          try {
-            await addBook({
-              name: name.trim(),
-              author: author.trim(),
-              publisher: publisher.trim() || "Noma'lum",
-              year: Number(year) || new Date().getFullYear(),
-              quantity_in_library: Number(qty) || 1,
-              library: 1,
-            });
-            success++;
-          } catch {
-            console.error("CSV qatori xato:", lines[i]);
-          }
-        }
-        alert(`Muvaffaqiyatli: ${success} ta kitob qo'shildi!`);
-        setShowCrudMenu(false);
-        e.target.value = null;
-      } catch {
-        alert("Fayl o'qilmadi");
-      }
-    };
-    reader.readAsText(file, "UTF-8");
-  };
-
-  const handleDelete = async (id) => {
-    if (!window) return;
-    try {
-      await deleteBook(id);
-    } catch {
-      alert("O'chirishda xatolik");
-    }
-  };
+  }, [books]);
 
   const handleRename = (id, newName) => {
     setLocalBooks((prev) =>
@@ -290,204 +175,455 @@ const KitoblarPage = () => {
     );
   };
 
-  const ModalWrapper = ({ children, title, onClose }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-4">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-        <h2 className="text-2xl font-bold text-gray-800 mb-5 text-center">
-          {title}
-        </h2>
-        {children}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="mt-5 w-full px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
-          >
-            Bekor qilish
-          </button>
-        )}
-      </div>
-    </div>
-  );
+  const handleDelete = async (id) => {
+    if (!confirm("Rostdan o'chirasizmi?")) return;
+    try {
+      await deleteBook(id);
+      notifications.show({
+        title: "Muvaffaqiyatli",
+        message: "Kitob o'chirildi",
+        color: "green",
+        icon: <IconCheck />,
+      });
+    } catch {
+      notifications.show({
+        title: "Xatolik",
+        message: "O'chirib bo'lmadi",
+        color: "red",
+        icon: <IconX />,
+      });
+    }
+  };
 
-  const Input = ({ name, value, onChange, placeholder, type = "text" }) => (
-    <input
-      name={name}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder || name}
-      type={type}
-      className="w-full border border-gray-300 rounded px-4 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-green-500"
-    />
-  );
+  const handleAddSingle = async () => {
+    if (!singleForm.name.trim())
+      return notifications.show({
+        title: "Xatolik",
+        message: "Kitob nomi bo'sh!",
+        color: "red",
+      });
+    try {
+      await addBook({
+        ...singleForm,
+        year: Number(singleForm.year) || 2024,
+        quantity_in_library: Number(singleForm.quantity_in_library) || 1,
+        library: 1,
+      });
+      notifications.show({
+        title: "Muvaffaqiyatli",
+        message: "Kitob qo'shildi!",
+        color: "green",
+        icon: <IconCheck />,
+      });
+      setShowSingle(false);
+      setSingleForm({
+        name: "",
+        author: "",
+        publisher: "",
+        year: "",
+        quantity_in_library: "1",
+      });
+    } catch {
+      notifications.show({
+        title: "Xatolik",
+        message: "Kitob qo'shib bo'lmadi",
+        color: "red",
+      });
+    }
+  };
+
+  const handleAddTenBooks = async () => {
+    const valid = tenBooks.filter((b) => b.name.trim());
+    if (valid.length === 0)
+      return notifications.show({
+        title: "Xatolik",
+        message: "Hech bo'lmaganda 1 ta nom kiriting!",
+        color: "red",
+      });
+
+    setTenLoading(true);
+    let success = 0;
+    for (const book of valid) {
+      try {
+        await addBook({
+          name: book.name.trim(),
+          author: book.author.trim() || "Noma'lum",
+          publisher: book.publisher.trim() || "Noma'lum",
+          year: Number(book.year) || 2024,
+          quantity_in_library: Number(book.quantity_in_library) || 1,
+          library: 1,
+        });
+        success++;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    setTenLoading(false);
+    notifications.show({
+      title: "Muvaffaqiyatli!",
+      message: `${success} ta kitob qo'shildi!`,
+      color: "green",
+      icon: <IconCheck />,
+    });
+    setShowTen(false);
+    setTenBooks(
+      Array(10)
+        .fill(null)
+        .map(() => ({
+          name: "",
+          author: "",
+          publisher: "",
+          year: "",
+          quantity_in_library: "1",
+        }))
+    );
+  };
+
+  const updateTenBook = (i, field, value) => {
+    setTenBooks((prev) =>
+      prev.map((b, idx) => (idx === i ? { ...b, [field]: value } : b))
+    );
+  };
+
+  const handleExcelUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet);
+
+        const formatted = json
+          .map((row) => ({
+            name: String(row.name || row.Nom || row.kitob || "").trim(),
+            author:
+              String(row.author || row.Muallif || "").trim() || "Noma'lum",
+            publisher:
+              String(row.publisher || row.Nashriyot || "").trim() || "Noma'lum",
+            year: Number(row.year || row.Yil) || 2024,
+            quantity_in_library: Number(row.quantity || row.Soni || 1) || 1,
+          }))
+          .filter((b) => b.name);
+
+        if (formatted.length === 0) {
+          notifications.show({
+            title: "Xatolik",
+            message: "Excelda kitob topilmadi!",
+            color: "red",
+          });
+          return;
+        }
+
+        setExcelData(formatted);
+        setShowExcel(true);
+      } catch {
+        notifications.show({
+          title: "Xatolik",
+          message: "Excel faylini o'qib bo'lmadi",
+          color: "red",
+        });
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = null;
+  };
+
+  const confirmExcelImport = async () => {
+    setExcelLoading(true);
+    let success = 0;
+    for (const book of excelData) {
+      try {
+        await addBook({ ...book, library: 1 });
+        success++;
+      } catch {}
+    }
+    setExcelLoading(false);
+    notifications.show({
+      title: "Muvaffaqiyatli!",
+      message: `${success} ta kitob qo'shildi!`,
+      color: "green",
+      icon: <IconCheck />,
+    });
+    setShowExcel(false);
+    setExcelData([]);
+    loadBooks();
+  };
+
+  const exportExcel = () => {
+    if (localBooks.length === 0)
+      return notifications.show({
+        title: "Xatolik",
+        message: "Kitoblar yo'q!",
+        color: "red",
+      });
+    const data = localBooks.map((b) => ({
+      Nom: b.name,
+      Muallif: b.author || "",
+      Nashriyot: b.publisher || "",
+      Yil: b.year || "",
+      Soni: b.quantity_in_library || 0,
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Kitoblar");
+    XLSX.writeFile(
+      wb,
+      `kitoblar_${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
+    notifications.show({
+      title: "Muvaffaqiyatli",
+      message: "Excel yuklandi!",
+      color: "green",
+      icon: <IconDownload />,
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 relative">
-      <h1 className="text-3xl font-bold text-brown-800 text-center mb-6">
-        {t("kitoblar.book")} ({localBooks.length})
-      </h1>
-
-      <button
-        onClick={() => setShowCrudMenu(true)}
-        className="fixed bottom-10 right-10 bg-green-600 text-white px-6 py-3 rounded-full shadow-lg hover:bg-green-700 transition z-10"
-      >
-        Kitob qo'shish
-      </button>
-
-      {showCrudMenu && (
-        <ModalWrapper title="Tanlang" onClose={() => setShowCrudMenu(false)}>
-          <div className="space-y-3">
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-[#4e342e]">
+            {t("kitoblar.book")} ({localBooks.length})
+          </h1>
+          <div className="flex gap-4">
             <button
-              onClick={() => {
-                setShowSingleModal(true);
-                setShowCrudMenu(false);
-              }}
-              className="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700 transition font-medium"
+              onClick={exportExcel}
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition flex items-center gap-2"
             >
-              1 ta kitob
+              <IconDownload size={20} /> Excel yuklab olish
             </button>
-            <button
-              onClick={() => {
-                setShowMultiModal(true);
-                setShowCrudMenu(false);
-              }}
-              className="w-full py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition font-medium"
-            >
-              Bir nechta kitob
-            </button>
-            <label className="block w-full py-3 bg-purple-600 text-white rounded hover:bg-purple-700 transition text-center cursor-pointer font-medium text-lg">
-              Fayl yuklash
+            <label className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium cursor-pointer transition flex items-center gap-2">
+              <IconUpload size={20} /> Excel yuklash
               <input
                 type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
+                accept=".xlsx,.xls"
+                onChange={handleExcelUpload}
                 className="hidden"
               />
             </label>
           </div>
-        </ModalWrapper>
-      )}
+        </div>
 
-      {showSingleModal && (
-        <ModalWrapper
-          title="Yangi kitob qo'shish"
-          onClose={() => setShowSingleModal(false)}
+        <button
+          onClick={() => setShowSingle(true)}
+          className="fixed bottom-8 right-8 bg-green-600 hover:bg-green-700 text-white w-16 h-16 rounded-full shadow-2xl text-4xl z-50 transition transform hover:scale-110"
         >
-          {["name", "author", "publisher", "year", "quantity_in_library"].map(
-            (f) => (
-              <Input
-                key={f}
-                name={f}
-                value={singleBook[f]}
-                onChange={handleSingleChange}
-                placeholder={f === "name" ? "Kitob nomi *" : f}
-                type={
-                  f.includes("year") || f.includes("quantity")
-                    ? "number"
-                    : "text"
-                }
-              />
-            )
-          )}
-          <button
-            onClick={handleAddSingleBook}
-            className="mt-4 w-full py-3 bg-green-600 text-white rounded hover:bg-green-700 transition font-medium"
-          >
-            Saqlash
-          </button>
-        </ModalWrapper>
-      )}
+          +
+        </button>
 
-      {showMultiModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-screen overflow-y-auto shadow-xl">
-            <h2 className="text-2xl font-bold text-gray-800 mb-5 text-center">
-              Bir nechta kitob qo'shish ({multiBooksList.length} ta)
+        <div
+          ref={gridRef}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+        >
+          {localBooks.map((book) => (
+            <BookCard
+              key={book.id}
+              book={book}
+              onDelete={handleDelete}
+              onRename={handleRename}
+            />
+          ))}
+        </div>
+      </div>
+
+      {showSingle && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              Yangi kitob qo'shish
             </h2>
-            <div className="border-2 border-dashed border-blue-300 rounded-lg p-4 bg-blue-50 mb-4">
-              {[
-                "name",
-                "author",
-                "publisher",
-                "year",
-                "quantity_in_library",
-              ].map((f) => (
-                <Input
-                  key={f}
-                  name={f}
-                  value={currentMultiBook[f]}
-                  onChange={(e) =>
-                    setCurrentMultiBook({
-                      ...currentMultiBook,
-                      [e.target.name]: e.target.value,
-                    })
-                  }
-                  placeholder={f === "name" ? "Kitob nomi *" : f}
-                  type={
-                    f.includes("year") || f.includes("quantity")
-                      ? "number"
-                      : "text"
-                  }
-                />
-              ))}
+            <input
+              placeholder="Nomi *"
+              value={singleForm.name}
+              onChange={(e) =>
+                setSingleForm({ ...singleForm, name: e.target.value })
+              }
+              className="w-full border p-3 rounded mb-3 focus:ring-2 focus:ring-green-500"
+            />
+            <input
+              placeholder="Muallif"
+              value={singleForm.author}
+              onChange={(e) =>
+                setSingleForm({ ...singleForm, author: e.target.value })
+              }
+              className="w-full border p-3 rounded mb-3"
+            />
+            <input
+              placeholder="Nashriyot"
+              value={singleForm.publisher}
+              onChange={(e) =>
+                setSingleForm({ ...singleForm, publisher: e.target.value })
+              }
+              className="w-full border p-3 rounded mb-3"
+            />
+            <input
+              placeholder="Soni"
+              value={singleForm.quantity_in_library}
+              onChange={(e) =>
+                setSingleForm({
+                  ...singleForm,
+                  quantity_in_library: e.target.value,
+                })
+              }
+              className="w-full border p-3 rounded mb-6"
+            />
+            <div className="flex gap-4">
               <button
-                onClick={addToMultiList}
-                className="w-full py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition font-medium"
+                onClick={() => setShowSingle(false)}
+                className="flex-1 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded"
               >
-                Ushbu kitobni qo'shish
+                Bekor
+              </button>
+              <button
+                onClick={handleAddSingle}
+                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded"
+              >
+                Saqlash
               </button>
             </div>
-            {multiBooksList.length > 0 && (
-              <div className="mb-4 max-h-64 overflow-y-auto">
-                {multiBooksList.map((b, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center bg-gray-100 p-3 rounded mb-2"
-                  >
-                    <span className="text-sm">
-                      <strong>{b.name}</strong> — {b.author || "muallif yo'q"}
-                    </span>
-                    <button
-                      onClick={() => removeFromMultiList(i)}
-                      className="text-red-600 text-sm"
-                    >
-                      o'chirish
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowSingle(false);
+                setShowTen(true);
+              }}
+              className="mt-4 w-full text-center text-blue-600 hover:underline"
+            >
+              10 ta kitob qo'shish
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showTen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-screen overflow-y-auto p-8 shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              10 ta kitob qo'shish
+            </h2>
+            <div className="space-y-4">
+              {tenBooks.map((book, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-lg border"
+                >
+                  <input
+                    placeholder={`Nom ${i + 1} *`}
+                    value={book.name}
+                    onChange={(e) => updateTenBook(i, "name", e.target.value)}
+                    className="border p-2 rounded"
+                  />
+                  <input
+                    placeholder="Muallif"
+                    value={book.author}
+                    onChange={(e) => updateTenBook(i, "author", e.target.value)}
+                    className="border p-2 rounded"
+                  />
+                  <input
+                    placeholder="Nashriyot"
+                    value={book.publisher}
+                    onChange={(e) =>
+                      updateTenBook(i, "publisher", e.target.value)
+                    }
+                    className="border p-2 rounded"
+                  />
+                  <input
+                    placeholder="Soni"
+                    value={book.quantity_in_library}
+                    onChange={(e) =>
+                      updateTenBook(i, "quantity_in_library", e.target.value)
+                    }
+                    className="border p-2 rounded"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-4 mt-8">
               <button
-                onClick={() => {
-                  setShowMultiModal(false);
-                  setMultiBooksList([]);
-                }}
-                className="flex-1 py-3 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
+                onClick={() => setShowTen(false)}
+                disabled={tenLoading}
+                className="flex-1 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded disabled:opacity-50"
               >
-                Bekor qilish
+                Bekor
               </button>
               <button
-                onClick={handleAddMultiBooks}
-                disabled={multiBooksList.length === 0}
-                className="flex-1 py-3 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 transition font-medium"
+                onClick={handleAddTenBooks}
+                disabled={tenLoading}
+                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded font-bold disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Hammasini saqlash ({multiBooksList.length})
+                {tenLoading ? (
+                  <>
+                    <IconLoader2 className="animate-spin" /> Qo'shilmoqda...
+                  </>
+                ) : (
+                  "Hammasini qo'shish"
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto mt-6">
-        {localBooks.map((book) => (
-          <BookCard
-            key={book.id}
-            book={book}
-            onDelete={handleDelete}
-            onRename={handleRename}
-          />
-        ))}
-      </div>
+      {showExcel && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-screen overflow-y-auto p-8 shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              Excel dan topildi: {excelData.length} ta kitob
+            </h2>
+            <div className="overflow-x-auto mb-6 border rounded-lg">
+              <table className="w-full">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-3 text-left border">Nom</th>
+                    <th className="p-3 text-left border">Muallif</th>
+                    <th className="p-3 text-left border">Nashriyot</th>
+                    <th className="p-3 text-left border">Yil</th>
+                    <th className="p-3 text-left border">Soni</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {excelData.map((b, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="p-3 border">{b.name}</td>
+                      <td className="p-3 border">{b.author}</td>
+                      <td className="p-3 border">{b.publisher}</td>
+                      <td className="p-3 border">{b.year}</td>
+                      <td className="p-3 border text-center">
+                        {b.quantity_in_library}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowExcel(false)}
+                disabled={excelLoading}
+                className="flex-1 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded disabled:opacity-50"
+              >
+                Bekor
+              </button>
+              <button
+                onClick={confirmExcelImport}
+                disabled={excelLoading}
+                className="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {excelLoading ? (
+                  <>
+                    <IconLoader2 className="animate-spin" /> Qo'shilmoqda...
+                  </>
+                ) : (
+                  "Hammasini qo'shish"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

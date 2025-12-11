@@ -9,6 +9,7 @@ import KutubxonalarDetail from "./pages/KutubxonalarDetail";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
+import RegisPage from "./pages/RegisPage";
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
       </Route>
       <Route path="*" element={<NotFound />} />
       <Route path="login" element={<LoginPage />} />
+      <Route path="regis" element={<RegisPage />} />
     </Routes>
   );
 };

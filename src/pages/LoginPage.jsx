@@ -71,8 +71,8 @@ const LoginPage = () => {
           </button>
 
           <p className="text-sm text-[#6b4f33] mt-4">
-            Hisobingiz yo’q?{" "}
-            <Link to="/register" className="text-[#8e6f51] hover:underline">
+            Hisobingiz yo’q?
+            <Link to="/regis" className="text-[#8e6f51] hover:underline">
               Ro'yxatdan o'tish
             </Link>
           </p>
