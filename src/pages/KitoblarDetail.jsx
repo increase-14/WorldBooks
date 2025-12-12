@@ -44,7 +44,7 @@ const KitoblarDetail = () => {
     );
 
   return (
-    <div className="min-h-screen bg-white p-6 flex justify-center">
+    <div className="min-h-screen bg-[#f4efe9] p-6 flex justify-center">
       <div className="bg-white border border-[#4e342e]/20 rounded-2xl shadow-xl w-full max-w-3xl p-6 animate-fade">
         <div className="w-full h-72 overflow-hidden rounded-xl shadow-md mb-6 animate-fadezoom">
           <img

@@ -39,7 +39,7 @@ const KutubxonalarPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white py-10 px-4">
+    <div className="min-h-screen bg-[#f4efe9] py-10 px-4">
       <h1 className="text-3xl font-bold text-brown-800 text-center mb-12">
         {t("kutubxonalar.kutub")} ({librariesList.length})
       </h1>

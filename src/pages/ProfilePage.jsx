@@ -3,10 +3,14 @@ import { useNavigate } from "react-router-dom";
 import authStore from "../store/authStore";
 import { api } from "../store/useAppStore";
 
+const YANDEX_API_KEY = "bc32072f-a50d-4f7e-b22c-a4b70bba1202";
+
 const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [myBooks, setMyBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [libraryCoords, setLibraryCoords] = useState(null);
+  const [libraryAddress, setLibraryAddress] = useState("");
 
   const logout = authStore((state) => state.logout);
   const navigate = useNavigate();
@@ -26,9 +30,26 @@ const ProfilePage = () => {
 
           const books = libraryData.results?.books || libraryData.books || [];
           setMyBooks(books);
+
+          if (libraryData.latitude && libraryData.longitude) {
+            setLibraryCoords([libraryData.latitude, libraryData.longitude]);
+          } else if (libraryData.address) {
+            const coords = await geocodeAddress(libraryData.address);
+            setLibraryCoords(coords);
+          }
+
+          if (libraryData.latitude && libraryData.longitude) {
+            const address = await reverseGeocode(
+              libraryData.latitude,
+              libraryData.longitude
+            );
+            setLibraryAddress(address);
+          } else if (libraryData.address) {
+            setLibraryAddress(libraryData.address);
+          }
         }
       } catch (err) {
-        console.error("Xato:", err);
+        console.error("Ошибка:", err);
         if (err.response?.status === 401) {
           logout();
           navigate("/login");
@@ -41,13 +62,52 @@ const ProfilePage = () => {
     fetchProfileAndBooks();
   }, [logout, navigate]);
 
-  if (loading) {
+  const geocodeAddress = async (address) => {
+    try {
+      const response = await fetch(
+        `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_API_KEY}&geocode=${encodeURIComponent(
+          address
+        )}&format=json&results=1&lang=en_US`
+      );
+      const data = await response.json();
+      const geoObject =
+        data.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
+      const coordsString = geoObject?.Point?.pos;
+      if (coordsString) {
+        const [lng, lat] = coordsString.split(" ").map(Number);
+        return [lat, lng];
+      }
+      return null;
+    } catch (err) {
+      console.error("Geocode error:", err);
+      return null;
+    }
+  };
+
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const response = await fetch(
+        `https://geocode-maps.yandex.ru/1.x/?apikey=${YANDEX_API_KEY}&geocode=${lng},${lat}&format=json&results=1&lang=en_US`
+      );
+      const data = await response.json();
+      const geoObject =
+        data.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
+      if (geoObject?.metaDataProperty?.GeocoderMetaData?.text) {
+        return geoObject.metaDataProperty.GeocoderMetaData.text;
+      }
+      return `${lat},${lng}`;
+    } catch (err) {
+      console.error("Reverse geocode error:", err);
+      return `${lat},${lng}`;
+    }
+  };
+
+  if (loading)
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-green-600"></div>
       </div>
     );
-  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4">
@@ -73,7 +133,7 @@ const ProfilePage = () => {
                 {profile.library.name}
               </p>
               <p className="text-sm text-gray-600 mt-1">
-                {profile.library.address || "Chilonzor, Toshkent"}
+                {libraryAddress || profile.library.address}
               </p>
             </div>
           ) : (
@@ -93,11 +153,22 @@ const ProfilePage = () => {
           </button>
         </div>
 
-        {/* <div>
-          <YMaps>
-              <Map defaultState={{ center: [55.75, 37.57], zoom: 9 }} />
-          </YMaps>
-        </div> */}
+        {libraryCoords ? (
+          <div className="h-96 mb-10 rounded-2xl overflow-hidden shadow-xl">
+            <iframe
+              title="Library Map"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              src={`https://yandex.ru/map-widget/v1/?ll=${libraryCoords[1]}%2C${libraryCoords[0]}&z=15&pt=${libraryCoords[1]}%2C${libraryCoords[0]},pm2rdl`}
+              allowFullScreen
+            ></iframe>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 mb-10">
+            Координаты библиотеки не найдены
+          </p>
+        )}
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h3 className="text-2xl font-bold text-gray-800 mb-8 flex items-center justify-between">

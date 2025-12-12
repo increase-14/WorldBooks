@@ -9,27 +9,25 @@ const RegisPage = () => {
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
-    library_name: "",
-    owner_name: "",
+    name: "",
     phone: "",
-    address: "",
     password: "",
+    address: "",
+    instagram: "",
+    facebook: "",
+    telegram: "",
+    can_rent_books: false,
   });
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !form.library_name ||
-      !form.owner_name ||
-      !form.phone ||
-      !form.address ||
-      !form.password
-    ) {
+    if (!form.name || !form.phone || !form.password || !form.address) {
       notifications.show({
         title: "Diqqat",
         message: "Barcha maydonlarni to'ldiring!",
@@ -43,11 +41,22 @@ const RegisPage = () => {
 
     try {
       await api.post("/api/v1/auth/register-library/", {
-        library_name: form.library_name.trim(),
-        owner_name: form.owner_name.trim(),
-        phone: form.phone.trim(),
-        address: form.address.trim(),
-        password: form.password,
+        user: {
+          name: form.name.trim(),
+          phone: form.phone.trim(),
+          password: form.password.trim(),
+        },
+        library: {
+          address: form.address.trim(),
+          can_rent_books: form.can_rent_books,
+          social_media: {
+            instagram: form.instagram || null,
+            facebook: form.facebook || null,
+            telegram: form.telegram || null,
+          },
+          latitude: null,
+          longitude: null,
+        },
       });
 
       notifications.show({
@@ -62,7 +71,8 @@ const RegisPage = () => {
     } catch (err) {
       const msg =
         err.response?.data?.phone?.[0] ||
-        err.response?.data?.library_name?.[0] ||
+        err.response?.data?.user?.[0] ||
+        err.response?.data?.library?.[0] ||
         "Ro'yxatdan o'tishda xatolik";
       notifications.show({
         title: "Xatolik",
@@ -86,18 +96,8 @@ const RegisPage = () => {
 
           <form onSubmit={handleSubmit} className="p-10 space-y-7">
             <input
-              name="library_name"
-              value={form.library_name}
-              onChange={handleChange}
-              type="text"
-              placeholder="Kutubxona nomi"
-              className="w-full px-5 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#8e6f51]/30 text-lg"
-              required
-            />
-
-            <input
-              name="owner_name"
-              value={form.owner_name}
+              name="name"
+              value={form.name}
               onChange={handleChange}
               type="text"
               placeholder="Sizning ismingiz"
@@ -116,6 +116,16 @@ const RegisPage = () => {
             />
 
             <input
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              type="password"
+              placeholder="Parol"
+              className="w-full px-5 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#8e6f51]/30 text-lg"
+              required
+            />
+
+            <input
               name="address"
               value={form.address}
               onChange={handleChange}
@@ -126,14 +136,40 @@ const RegisPage = () => {
             />
 
             <input
-              name="password"
-              value={form.password}
+              name="instagram"
+              value={form.instagram}
               onChange={handleChange}
-              type="password"
-              placeholder="Parol"
+              type="text"
+              placeholder="Instagram username"
               className="w-full px-5 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#8e6f51]/30 text-lg"
-              required
             />
+            <input
+              name="facebook"
+              value={form.facebook}
+              onChange={handleChange}
+              type="text"
+              placeholder="Facebook username"
+              className="w-full px-5 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#8e6f51]/30 text-lg"
+            />
+            <input
+              name="telegram"
+              value={form.telegram}
+              onChange={handleChange}
+              type="text"
+              placeholder="Telegram username"
+              className="w-full px-5 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#8e6f51]/30 text-lg"
+            />
+
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                name="can_rent_books"
+                checked={form.can_rent_books}
+                onChange={handleChange}
+                className="w-5 h-5"
+              />
+              Kitob ijarasi
+            </label>
 
             <button
               type="submit"
